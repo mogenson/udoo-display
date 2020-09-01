@@ -1,0 +1,23 @@
+[package]
+name = "rust-atmega32u4"
+version = "0.1.0"
+authors = ["Michael Mogenson <michael.mogenson@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+panic-halt = "0.2.0"
+
+[dependencies.arduino-leonardo]
+git = "https://github.com/Rahix/avr-hal"
+
+[profile.dev]
+panic = "abort"
+lto = true
+opt-level = "s"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+debug = true
+lto = true
+opt-level = "s"

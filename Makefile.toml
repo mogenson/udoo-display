@@ -1,0 +1,30 @@
+[env]
+MCU = "atmega32u4"
+ELF = "target/avr-${MCU}/debug/rust-${MCU}.elf"
+PORT = "/dev/ttyACM0"
+
+[tasks.debug]
+dependencies = ["build"]
+script = [
+'''
+    simavr --mcu ${MCU} --gdb ${ELF} > /dev/null &
+    PID=$!
+    script -q /dev/null -c \
+        "avr-gdb ${ELF} -ex 'target extended-remote :1234'"
+    kill -2 $PID
+'''
+]
+
+[tasks.flash]
+dependencies = ["build"]
+script = [
+'''
+    avrdude -D \
+        -C /etc/avrdude.conf \
+        -p ${MCU} \
+        -c avr109 \
+        -P ${PORT} \
+        -b 57600 \
+        -U "flash:w:${ELF}:e"
+'''
+]
