@@ -1,6 +1,6 @@
 [env]
 MCU = "atmega32u4"
-ELF = "target/avr-${MCU}/debug/rust-${MCU}.elf"
+ELF = "target/avr-${MCU}/debug/${MCU}-usb.elf"
 PORT = "/dev/ttyACM0"
 
 [tasks.debug]
