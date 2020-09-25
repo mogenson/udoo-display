@@ -19,6 +19,8 @@ script = [
 dependencies = ["build"]
 script = [
 '''
+    stty -F ${PORT} 1200
+    sleep 1
     avrdude -D \
         -C /etc/avrdude.conf \
         -p ${MCU} \

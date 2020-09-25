@@ -33,6 +33,11 @@
 #define USB_SERIAL_PRIVATE_INCLUDE
 #include "usb_serial.h"
 
+/* for arduino leonardo bootloader */
+#include <avr/wdt.h>
+#define MAGIC_KEY 0x7777
+#define MAGIC_KEY_POS 0x0800
+
 /**************************************************************************
  *
  *  Configurable Options
@@ -919,6 +924,14 @@ void isr_usb_com_vect() {
       }
       usb_ack_out();
       usb_send_in();
+
+      // if baudrate is 1200, reboot into bootloader
+      if (usb_serial_get_baud() == 1200) {
+        cli();
+        uint16_t magic_key_pos = MAGIC_KEY_POS;
+        *(uint16_t *)magic_key_pos = MAGIC_KEY;
+        wdt_enable(WDTO_120MS);
+      }
       return;
     }
     if (bRequest == CDC_SET_CONTROL_LINE_STATE && bmRequestType == 0x21) {
