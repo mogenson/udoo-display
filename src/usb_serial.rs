@@ -25,8 +25,8 @@ extern "C" {
     fn usb_serial_set_control(signals: u8) -> i8;
 
     /* interrupt service routines */
-    pub fn isr_usb_gen_vect();
-    pub fn isr_usb_com_vect();
+    pub fn usb_gen_handler();
+    pub fn usb_com_handler();
 }
 
 pub fn init() {

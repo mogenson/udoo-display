@@ -50,10 +50,10 @@ fn main() -> ! {
 
 #[avr_device::interrupt(atmega32u4)]
 unsafe fn USB_GEN() {
-    avr_device::interrupt::free(|_| usb_serial::isr_usb_gen_vect());
+    avr_device::interrupt::free(|_| usb_serial::usb_gen_handler());
 }
 
 #[avr_device::interrupt(atmega32u4)]
 unsafe fn USB_COM() {
-    avr_device::interrupt::free(|_| usb_serial::isr_usb_com_vect());
+    avr_device::interrupt::free(|_| usb_serial::usb_com_handler());
 }

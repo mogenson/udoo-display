@@ -761,7 +761,7 @@ int8_t usb_serial_set_control(uint8_t signals) {
 // USB Device Interrupt - handle all device-level events
 // the transmit buffer flushing is triggered by the start of frame
 //
-void isr_usb_gen_vect() {
+void usb_gen_handler() {
   uint8_t intbits, t;
 
   intbits = UDINT;
@@ -805,7 +805,7 @@ static inline void usb_ack_out(void) { UEINTX = ~(1 << RXOUTI); }
 // other endpoints are manipulated by the user-callable
 // functions, and the start-of-frame interrupt.
 //
-void isr_usb_com_vect() {
+void usb_com_handler() {
   uint8_t intbits;
   const uint8_t *list;
   const uint8_t *cfg;

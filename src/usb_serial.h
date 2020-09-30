@@ -28,8 +28,8 @@ uint8_t usb_serial_get_control(void);    // get the RTS and DTR signal state
 int8_t usb_serial_set_control(uint8_t signals); // set DSR, DCD, RI, etc
 
 // interrupt service routines
-void isr_usb_gen_vect(void);
-void isr_usb_com_vect(void);
+void usb_gen_handler(void);
+void usb_com_handler(void);
 
 // constants corresponding to the various serial parameters
 #define USB_SERIAL_DTR 0x01
