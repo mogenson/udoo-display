@@ -265,8 +265,6 @@ static const struct usb_string_descriptor_struct PROGMEM string1 = {
     sizeof(STR_MANUFACTURER), 3, STR_MANUFACTURER};
 static const struct usb_string_descriptor_struct PROGMEM string2 = {
     sizeof(STR_PRODUCT), 3, STR_PRODUCT};
-static const struct usb_string_descriptor_struct PROGMEM string3 = {
-    sizeof(STR_SERIAL_NUMBER), 3, STR_SERIAL_NUMBER};
 
 // This table defines which descriptor data is sent for each specific
 // request from the host (in wValue and wIndex).
@@ -280,8 +278,7 @@ static const struct descriptor_list_struct {
     {0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
     {0x0300, 0x0000, (const uint8_t *)&string0, 4},
     {0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
-    {0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT)},
-    {0x0303, 0x0409, (const uint8_t *)&string3, sizeof(STR_SERIAL_NUMBER)}};
+    {0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT)}};
 #define NUM_DESC_LIST                                                          \
   (sizeof(descriptor_list) / sizeof(struct descriptor_list_struct))
 
