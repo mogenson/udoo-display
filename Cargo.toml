@@ -9,6 +9,9 @@ arduino-leonardo = { git = "https://github.com/Rahix/avr-hal" }
 avr-device = "0.2.2"
 panic-halt = "0.2.0"
 ssd1306 = "0.4.0"
+embedded-hal = "0.2.4"
+nb = "1.0.0"
+ufmt = "0.1.0"
 
 [build-dependencies]
 cc = "1.0.60"

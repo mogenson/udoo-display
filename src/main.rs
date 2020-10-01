@@ -4,47 +4,37 @@
 
 mod usb_serial;
 
-use arduino_leonardo as hal;
-use core::fmt::Write;
-use hal::prelude::*;
+use arduino_leonardo::prelude::*;
 use panic_halt as _;
-use ssd1306::{prelude::*, Builder, I2CDIBuilder};
+use ssd1306::prelude::*;
 
-#[hal::entry]
+#[arduino_leonardo::entry]
 fn main() -> ! {
-    let dp = hal::Peripherals::take().unwrap();
-    let mut pins = hal::Pins::new(dp.PORTB, dp.PORTC, dp.PORTD, dp.PORTE, dp.PORTF);
-    let mut led = pins.d13.into_output(&mut pins.ddr);
+    let dp = arduino_leonardo::Peripherals::take().unwrap();
+    let pins = arduino_leonardo::Pins::new(dp.PORTB, dp.PORTC, dp.PORTD, dp.PORTE, dp.PORTF);
+    let mut usb = usb_serial::UsbSerial();
 
-    let i2c = hal::I2c::new(
+    let i2c = arduino_leonardo::I2c::new(
         dp.TWI,
-        pins.d2.into_pull_up_input(&mut pins.ddr),
-        pins.d3.into_pull_up_input(&mut pins.ddr),
+        pins.d2.into_pull_up_input(&pins.ddr),
+        pins.d3.into_pull_up_input(&pins.ddr),
         400_000,
     );
 
-    let interface = I2CDIBuilder::new().init(i2c);
-    let mut disp: TerminalMode<_> = Builder::new().connect(interface).into();
+    let interface = ssd1306::I2CDIBuilder::new().init(i2c);
+    let mut disp: TerminalMode<_> = ssd1306::Builder::new().connect(interface).into();
     disp.init().unwrap();
     disp.clear().unwrap();
-    disp.write_str("init ").unwrap();
 
-    usb_serial::init();
-    while !usb_serial::is_configured() {}
-    avr_device::interrupt::free(|_| disp.write_str("done ").ok());
-    while !usb_serial::get_dtr() {}
-    usb_serial::flush_input();
-    avr_device::interrupt::free(|_| disp.write_str("open\n").ok());
+    usb.init();
+    while !usb.is_configured() {}
 
     loop {
-        while usb_serial::get_available() > 0 {
-            if let Some(c) = usb_serial::get_char() {
-                avr_device::interrupt::free(|_| disp.print_char(c as char).ok());
-            }
-        }
-
-        hal::delay_ms(200);
-        led.toggle().void_unwrap();
+        match usb.read() {
+            Ok(0) => avr_device::interrupt::free(|_| disp.clear().ok()),
+            Ok(c) => avr_device::interrupt::free(|_| disp.print_char(c as char).ok()),
+            Err(_) => Some(()),
+        };
     }
 }
 

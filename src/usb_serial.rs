@@ -29,35 +29,69 @@ extern "C" {
     pub fn usb_com_handler();
 }
 
-pub fn init() {
-    unsafe { usb_init() };
-}
+pub struct UsbSerial();
 
-pub fn is_configured() -> bool {
-    unsafe { usb_configured() != 0 }
-}
+impl UsbSerial {
+    pub fn init(&self) {
+        unsafe { usb_init() };
+    }
 
-pub fn get_char() -> Option<u8> {
-    let c = unsafe { usb_serial_getchar() };
-    if c == -1 {
-        None
-    } else {
-        Some(c as u8)
+    pub fn is_configured(&self) -> bool {
+        unsafe { usb_configured() != 0 }
+    }
+
+    pub fn get_available(&self) -> u8 {
+        unsafe { usb_serial_available() }
+    }
+
+    pub fn get_dtr(&self) -> bool {
+        unsafe { usb_serial_get_control() & 0x01 != 0 }
+    }
+
+    pub fn get_rts(&self) -> bool {
+        unsafe { usb_serial_get_control() & 0x02 != 0 }
     }
 }
 
-pub fn get_available() -> u8 {
-    unsafe { usb_serial_available() }
+impl embedded_hal::serial::Read<u8> for UsbSerial {
+    type Error = ();
+
+    fn read(&mut self) -> nb::Result<u8, Self::Error> {
+        if unsafe { usb_serial_available() } > 0 {
+            let data = unsafe { usb_serial_getchar() };
+            if data != -1 {
+                return Ok(data as u8);
+            }
+        }
+        Err(nb::Error::WouldBlock)
+    }
 }
 
-pub fn flush_input() {
-    unsafe { usb_serial_flush_input() }
+impl embedded_hal::serial::Write<u8> for UsbSerial {
+    type Error = ();
+
+    fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
+        if unsafe { usb_serial_putchar(word) == 0 } {
+            Ok(())
+        } else {
+            Err(nb::Error::WouldBlock)
+        }
+    }
+
+    fn flush(&mut self) -> nb::Result<(), Self::Error> {
+        unsafe { usb_serial_flush_output() };
+        Ok(())
+    }
 }
 
-pub fn get_dtr() -> bool {
-    unsafe { usb_serial_get_control() & 0x01 != 0 }
-}
+impl ufmt::uWrite for UsbSerial {
+    type Error = ();
 
-pub fn get_rts() -> bool {
-    unsafe { usb_serial_get_control() & 0x02 != 0 }
+    fn write_str(&mut self, s: &str) -> Result<(), Self::Error> {
+        if unsafe { usb_serial_write(s.as_ptr(), s.len() as u16) == 0 } {
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
 }
