@@ -1,10 +1,8 @@
 #![no_std]
 #![no_main]
-#![feature(abi_avr_interrupt)]
-
-mod usb_serial;
 
 use arduino_leonardo::prelude::*;
+use atmega32u4_usb_serial::UsbSerial;
 use panic_halt as _;
 use ssd1306::prelude::*;
 
@@ -12,7 +10,7 @@ use ssd1306::prelude::*;
 fn main() -> ! {
     let dp = arduino_leonardo::Peripherals::take().unwrap();
     let pins = arduino_leonardo::Pins::new(dp.PORTB, dp.PORTC, dp.PORTD, dp.PORTE, dp.PORTF);
-    let mut usb = usb_serial::UsbSerial();
+    let mut usb = UsbSerial::new(dp.USB_DEVICE);
 
     let i2c = arduino_leonardo::I2c::new(
         dp.TWI,
@@ -22,28 +20,26 @@ fn main() -> ! {
     );
 
     let interface = ssd1306::I2CDIBuilder::new().init(i2c);
-    let mut disp: TerminalMode<_> = ssd1306::Builder::new().connect(interface).into();
+    let mut disp: TerminalMode<_, _> = ssd1306::Builder::new()
+        .size(DisplaySize128x32)
+        .connect(interface)
+        .into();
+
     disp.init().unwrap();
     disp.clear().unwrap();
 
-    usb.init();
-    while !usb.is_configured() {}
+    usb.init(&dp.PLL);
 
     loop {
-        match usb.read() {
-            Ok(0) => avr_device::interrupt::free(|_| disp.clear().ok()),
-            Ok(c) => avr_device::interrupt::free(|_| disp.print_char(c as char).ok()),
-            Err(_) => Some(()),
-        };
+        if let Ok(c) = nb::block!(usb.read()) {
+            avr_device::interrupt::free(|_| {
+                if c == '\0' as u8 {
+                    disp.clear()
+                } else {
+                    disp.print_char(c as char)
+                }
+                .ok();
+            });
+        }
     }
-}
-
-#[avr_device::interrupt(atmega32u4)]
-unsafe fn USB_GEN() {
-    avr_device::interrupt::free(|_| usb_serial::usb_gen_handler());
-}
-
-#[avr_device::interrupt(atmega32u4)]
-unsafe fn USB_COM() {
-    avr_device::interrupt::free(|_| usb_serial::usb_com_handler());
 }
