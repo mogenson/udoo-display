@@ -1,8 +1,10 @@
-# atmega32u4-usb
+# UDOO Display
 
-Display text received over a USB serial interface to an SSD1306 OLED screen, on an ATmega32U4 microcontroller.
+Using the embedded atmega32u4 in an [UDOO Bolt Gear](https://www.udoo.org/udooboltgear), display text received over a USB serial interface on an [SSD1306 OLED screen](https://www.dfrobot.com/product-2018.html).
 
-Main application logic and display driver is written in Rust. USB serial implimentation uses [Teensy C code](https://www.pjrc.com/teensy/usb_serial.html).
+![udoo](./udoo.jpg)
+
+Main application logic and display driver is written in Rust. USB serial implementation uses the [atmega32u4-usb-serial](https://github.com/mogenson/atmega32u4-usb-serial) crate.
 
 Run `cargo make build` to compile and `cargo make flash` to upload.
 
